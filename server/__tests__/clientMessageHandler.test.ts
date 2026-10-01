@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AgentRuntime } from '../src/agentRuntime.js';
 import { AgentStateStore } from '../src/agentStateStore.js';
@@ -11,7 +11,11 @@ import {
   handleClientMessage,
 } from '../src/clientMessageHandler.js';
 import { getHooksEnabled, readConfig, setHooksEnabled } from '../src/configPersistence.js';
-import { TERMINAL_REQUIRES_TOKEN_REASON } from '../src/constants.js';
+import {
+  AGENT_INPUT_MAX_CHARS,
+  AGENT_INPUT_SUBMIT_DELAY_MS,
+  TERMINAL_REQUIRES_TOKEN_REASON,
+} from '../src/constants.js';
 import { FileStateAdapter } from '../src/fileStateAdapter.js';
 import { claudeProvider } from '../src/providers/hook/claude/claude.js';
 import { CLAUDE_HOOK_EVENTS } from '../src/providers/hook/claude/constants.js';
@@ -628,9 +632,12 @@ describe('clientMessageHandler: standalone terminal control plane', () => {
   class FakePty implements IPty {
     readonly pid = 4242;
     killSignals: Array<string | undefined> = [];
+    writes: string[] = [];
     onData(): void {}
     onExit(): void {}
-    write(): void {}
+    write(data: string): void {
+      this.writes.push(data);
+    }
     resize(): void {}
     kill(signal?: string): void {
       this.killSignals.push(signal);
@@ -854,5 +861,57 @@ describe('clientMessageHandler: standalone terminal control plane', () => {
     );
 
     expect(store.has(7)).toBe(false);
+  });
+
+  // ── sendAgentInput ───────────────────────────────────────────
+
+  it('sendAgentInput types the flattened line, then presses Enter in a separate write', () => {
+    vi.useFakeTimers();
+    try {
+      const { manager, spawned } = workingPtyManager();
+      store.set(5, makeAgent(5));
+      manager.create({ agentId: 5, command: 'claude', args: [], cwd: tempHome });
+
+      dispatch(
+        { type: 'sendAgentInput', id: 5, text: '파일 목록\n보여줘' },
+        ctx({ runtime, ptyManager: manager }),
+      );
+      expect(spawned[0].writes).toEqual(['파일 목록 보여줘']);
+
+      vi.advanceTimersByTime(AGENT_INPUT_SUBMIT_DELAY_MS);
+      expect(spawned[0].writes).toEqual(['파일 목록 보여줘', '\r']);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('sendAgentInput is ignored from an untokened client', () => {
+    const { manager, spawned } = workingPtyManager();
+    store.set(5, makeAgent(5));
+    manager.create({ agentId: 5, command: 'claude', args: [], cwd: tempHome });
+
+    dispatch(
+      { type: 'sendAgentInput', id: 5, text: 'rm -rf ~' },
+      ctx({ runtime, ptyManager: manager, privileged: false }),
+    );
+
+    expect(spawned[0].writes).toHaveLength(0);
+  });
+
+  it('sendAgentInput is ignored for an agent without a PTY, and for bad text', () => {
+    const { manager, spawned } = workingPtyManager();
+    store.set(5, makeAgent(5));
+    store.set(7, makeAgent(7));
+    manager.create({ agentId: 5, command: 'claude', args: [], cwd: tempHome });
+
+    dispatch({ type: 'sendAgentInput', id: 7, text: 'hi' }, ctx({ runtime, ptyManager: manager }));
+    dispatch({ type: 'sendAgentInput', id: 5, text: '   ' }, ctx({ runtime, ptyManager: manager }));
+    dispatch(
+      { type: 'sendAgentInput', id: 5, text: 'x'.repeat(AGENT_INPUT_MAX_CHARS + 1) },
+      ctx({ runtime, ptyManager: manager }),
+    );
+    dispatch({ type: 'sendAgentInput', id: 5, text: 'hi' }, ctx({ runtime }));
+
+    expect(spawned[0].writes).toHaveLength(0);
   });
 });

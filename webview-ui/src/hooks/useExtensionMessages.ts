@@ -525,6 +525,8 @@ export function useExtensionMessages(
           os.showWaitingBubble(id, msg.awaitingInput === true);
           playDoneSound();
         }
+      } else if (msg.type === 'agentReply') {
+        os.showReply(msg.id as number, msg.text as string);
       } else if (msg.type === 'agentToolPermission') {
         const id = msg.id as number;
         setAgentTools((prev) => {

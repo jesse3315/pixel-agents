@@ -134,6 +134,18 @@ export const TERMINAL_REQUIRES_TOKEN_REASON =
  *  the tokened URL a browser bookmarked keeps working across restarts. The
  *  embedded (VS Code) server still mints a fresh token per process. */
 export const STANDALONE_TOKEN_FILE_NAME = 'standalone-token';
+/** Longest chat message (after flattening) sendAgentInput will type into a PTY.
+ *  Longer messages are refused, not truncated, so nothing half-sent reaches Claude. */
+export const AGENT_INPUT_MAX_CHARS = 4_000;
+/** Gap between typing a chat message and pressing Enter. Claude Code's TUI reads
+ *  text and "\r" arriving in one chunk as a paste (the Enter becomes a newline in
+ *  the prompt instead of submitting it), so the Enter goes in its own write. */
+export const AGENT_INPUT_SUBMIT_DELAY_MS = 150;
+
+// ── Agent reply bubble ─────────────────────────────────────
+/** Cap on the turn's last assistant text sent as agentReply. The bubble shows far
+ *  less (webview AGENT_REPLY_BUBBLE_MAX_CHARS); this only bounds the broadcast. */
+export const AGENT_REPLY_MAX_CHARS = 1_000;
 
 // ── Layout/Config Persistence ──────────────────────────────
 export const LAYOUT_FILE_DIR = '.pixel-agents';

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { TERMINAL_MIRROR_SCROLLBACK_LINES } from '../src/constants.js';
 import type { IPty, PtyModule, PtyModuleResolution } from '../src/terminal/ptyModule.js';
 import { PtySessionManager } from '../src/terminal/ptySessionManager.js';
+import { resolveWindowsCommand } from '../src/terminal/resolveCommand.js';
 
 /**
  * Fake PTY. Tests never spawn a real process: they'd be slow, platform-specific,
@@ -122,7 +123,10 @@ describe('PtySessionManager lifecycle', () => {
   it('spawns with the requested command, cwd, and TERM', () => {
     const { manager, spawnArgs } = harness();
     create(manager, 7);
-    expect(spawnArgs[0].file).toBe('claude');
+    // Windows resolves bare commands to a full path (node-pty needs one there).
+    const expected =
+      process.platform === 'win32' ? resolveWindowsCommand('claude', process.env) : 'claude';
+    expect(spawnArgs[0].file).toBe(expected);
     expect(spawnArgs[0].args).toEqual(['--session-id', 'x']);
     expect(spawnArgs[0].options.cwd).toBe('/tmp');
     expect((spawnArgs[0].options.env as Record<string, string>).TERM).toBeTruthy();

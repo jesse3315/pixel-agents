@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { toMajorMinor } from './changelogData.js';
+import { AgentChatInput } from './components/AgentChatInput.js';
 import { BottomToolbar } from './components/BottomToolbar.js';
 import { ChangelogModal } from './components/ChangelogModal.js';
 import { ConnectionIndicator } from './components/ConnectionIndicator.js';
@@ -21,6 +22,7 @@ import { useIntroTour } from './hooks/useIntroTour.js';
 import { useTerminalDrawer } from './hooks/useTerminalDrawer.js';
 import { t, useLanguage } from './i18n/index.js';
 import { OfficeCanvas } from './office/components/OfficeCanvas.js';
+import { ReplyBubbles } from './office/components/ReplyBubbles.js';
 import { ToolOverlay } from './office/components/ToolOverlay.js';
 import { EditorState } from './office/editor/editorState.js';
 import { EditorToolbar } from './office/editor/EditorToolbar.js';
@@ -465,6 +467,21 @@ function App() {
               onCloseAgent={handleCloseAgent}
               alwaysShowOverlay={alwaysShowOverlay}
             />
+
+            <ReplyBubbles
+              officeState={officeState}
+              agents={agents}
+              containerRef={containerRef}
+              zoom={editor.zoom}
+              panRef={editor.panRef}
+              terminalAgentIds={terminalAgentIds}
+              onOpenTerminal={revealTerminal}
+            />
+
+            {/* Standalone only: VS Code users talk to agents in the editor's own terminal. */}
+            {isBrowserRuntime && !editor.isEditMode && (
+              <AgentChatInput officeState={officeState} terminalAgentIds={terminalAgentIds} />
+            )}
           </>
         ) : (
           <DebugView

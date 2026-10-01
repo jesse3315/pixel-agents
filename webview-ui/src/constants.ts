@@ -206,6 +206,23 @@ export const CHARACTER_HIT_HALF_WIDTH = 8;
 export const CHARACTER_HIT_HEIGHT = 24;
 export const TOOL_OVERLAY_VERTICAL_OFFSET = 32;
 
+// ── Agent chat (reply bubble + chat input) ──────────────────
+/** Seconds a turn-reply speech bubble stays up (it also hides on new activity). */
+export const AGENT_REPLY_BUBBLE_DURATION_SEC = 12;
+/** Characters of reply text shown in the bubble before the ellipsis. */
+export const AGENT_REPLY_BUBBLE_MAX_CHARS = 140;
+/** Screen px between the character's overlay anchor and the bubble's bottom
+ *  edge, so the bubble clears the hover/selected label panel. */
+export const AGENT_REPLY_BUBBLE_LIFT_PX = 34;
+/** Bubble width cap; long replies wrap inside it. */
+export const AGENT_REPLY_BUBBLE_MAX_WIDTH_PX = 280;
+/** Chat input width (clamped to the office region on narrow screens). */
+export const AGENT_CHAT_WIDTH_PX = 520;
+/** Longest chat message the input accepts (the server refuses longer ones). */
+export const AGENT_CHAT_MAX_CHARS = 4000;
+/** How long a chat hint ("no such area", "sent") stays under the input. */
+export const AGENT_CHAT_HINT_MS = 4000;
+
 // ── Greeter + Intro bubble ──────────────────────────────────
 /** Reserved character id for the Intro's greeter. Far outside both real agent
  *  ids (positive) and sub-agent ids (small negatives from -1 down). */

@@ -25,6 +25,7 @@ export type ServerMessage =
   | SubagentToolPermission
   | AgentTeamInfo
   | AgentContextUsage
+  | AgentReply
   | LayoutLoaded
   | FurnitureAssetsLoaded
   | CharacterSpritesLoaded
@@ -48,6 +49,7 @@ export type ClientMessage =
   | LaunchAgent
   | FocusAgent
   | CloseAgent
+  | SendAgentInput
   | SaveAgentSeats
   | SaveLayout
   | SetSoundEnabled
@@ -189,6 +191,12 @@ export interface AgentContextUsage {
   id: number;
   contextTokens: number;
   maxContextTokens: number;
+}
+
+export interface AgentReply {
+  type: 'agentReply';
+  id: number;
+  text: string;
 }
 
 export interface LayoutLoaded {
@@ -353,6 +361,12 @@ export interface FocusAgent {
 export interface CloseAgent {
   type: 'closeAgent';
   id: number;
+}
+
+export interface SendAgentInput {
+  type: 'sendAgentInput';
+  id: number;
+  text: string;
 }
 
 export interface SaveAgentSeats {

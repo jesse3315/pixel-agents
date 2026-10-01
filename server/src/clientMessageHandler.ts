@@ -17,6 +17,7 @@ import type { ConsentEffects } from './providers/hook/consentExecutor.js';
 import { applyConsentChoice } from './providers/hook/consentExecutor.js';
 import { hooksConsentRequest } from './providers/hook/consentGate.js';
 import { claudeProvider, hookProviderById, hookProviders } from './providers/index.js';
+import { submitAgentInput, toAgentInputLine } from './terminal/agentInput.js';
 import type { PtySessionManager } from './terminal/ptySessionManager.js';
 import { launchStandaloneAgent } from './terminal/standaloneAgentLauncher.js';
 
@@ -145,6 +146,23 @@ export function handleClientMessage(
         runtime.dismissalTracker.dismiss(agent.jsonlFile);
         runtime.removeAgent(id);
       }
+      break;
+    }
+
+    case 'sendAgentInput': {
+      // Typing into a PTY is acting on this machine (it is the agent's shell
+      // input), so it takes the same tokened connection as launchAgent, and it
+      // only ever reaches PTYs this server spawned -- observed agents have no
+      // terminal we could type into.
+      if (!ctx.ptyManager) break;
+      if (!ctx.privileged) {
+        console.warn('[Pixel Agents] Ignoring sendAgentInput from an untokened client.');
+        break;
+      }
+      const session = ctx.ptyManager.get(msg.id as number);
+      const line = toAgentInputLine(msg.text);
+      if (!session || session.hasExited || !store.has(msg.id as number) || line === null) break;
+      submitAgentInput(session, line);
       break;
     }
 

@@ -134,6 +134,20 @@ export const ko: Messages = {
   'agent.close': '에이전트 닫기',
   'agent.contextUsage': '컨텍스트 {pct}% 사용 ({max}k 중 {used}k 토큰)',
 
+  // ── Agent chat (input box, move commands, reply bubble) ──
+  'chat.inputLabel': '선택한 에이전트에게 보낼 메시지',
+  'chat.placeholder': '에이전트에게 말하기… (Enter 전송 · Esc 닫기)',
+  'chat.placeholderMoveOnly': '이동 명령만 가능해요 (예: "휴게실로 와", "자리로")',
+  'chat.noPty':
+    "메시지는 이 페이지에서 '+ 에이전트'로 시작한 에이전트에게만 보낼 수 있어요 (CLI가 출력한 토큰 URL로 열었을 때). 이동 명령은 됩니다.",
+  'chat.send': '보내기',
+  'chat.sent': '에이전트에게 보냈어요.',
+  'move.noArea': "'{name}' 구역이 없습니다 — 레이아웃 > 구역에서 만들어 주세요",
+  'move.unreachable': "'{name}' 구역으로 들어갈 길을 찾지 못했어요.",
+  'move.noSeat': '이 에이전트는 지정된 자리가 없어요.',
+  'move.busy': '작업 중이라 턴이 끝날 때까지 자리를 지켜요.',
+  'reply.openTerminal': '클릭하면 터미널이 열려요',
+
   // ── Agent tool status (server sends English; translated at display time) ──
   'status.reading': '{file} 읽는 중',
   'status.editing': '{file} 편집 중',

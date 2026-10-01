@@ -132,6 +132,20 @@ export const en = {
   'agent.close': 'Close agent',
   'agent.contextUsage': '{pct}% context used ({used}k of {max}k tokens)',
 
+  // ── Agent chat (input box, move commands, reply bubble) ──
+  'chat.inputLabel': 'Message to the selected agent',
+  'chat.placeholder': 'Tell the agent something… (Enter to send · Esc to close)',
+  'chat.placeholderMoveOnly': 'Move commands only, e.g. "go to kitchen" or "back to seat"',
+  'chat.noPty':
+    "Messages only reach agents started with + Agent on this page (opened from the CLI's tokened URL). Move commands still work.",
+  'chat.send': 'Send',
+  'chat.sent': 'Sent to the agent.',
+  'move.noArea': "No '{name}' area. Create one in Layout > Areas.",
+  'move.unreachable': "Can't find a way into '{name}'.",
+  'move.noSeat': 'This agent has no seat.',
+  'move.busy': 'The agent is working, so it stays at its desk until the turn ends.',
+  'reply.openTerminal': 'Click to open the terminal',
+
   // ── Agent tool status (server sends English; translated at display time) ──
   'status.reading': 'Reading {file}',
   'status.editing': 'Editing {file}',
