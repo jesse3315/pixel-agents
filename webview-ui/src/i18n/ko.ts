@@ -119,6 +119,12 @@ export const ko: Messages = {
   'zoom.in': '확대 (Ctrl+스크롤)',
   'zoom.out': '축소 (Ctrl+스크롤)',
 
+  // ── Terminal drawer (standalone) ──
+  'terminal.unavailable': '이 서버에서는 터미널을 사용할 수 없습니다.',
+  'terminal.dragToResize': '드래그하여 크기 조절',
+  'terminal.closePanel': '터미널 닫기',
+  'terminal.agentTab': '에이전트 {id}',
+
   // ── Agent overlay ──
   'agent.needsApproval': '승인 필요',
   'agent.waitingForInput': '입력 대기 중',

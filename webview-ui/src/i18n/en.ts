@@ -117,6 +117,12 @@ export const en = {
   'zoom.in': 'Zoom in (Ctrl+Scroll)',
   'zoom.out': 'Zoom out (Ctrl+Scroll)',
 
+  // ── Terminal drawer (standalone) ──
+  'terminal.unavailable': 'Terminal unavailable on this server.',
+  'terminal.dragToResize': 'Drag to resize',
+  'terminal.closePanel': 'Close terminal',
+  'terminal.agentTab': 'Agent {id}',
+
   // ── Agent overlay ──
   'agent.needsApproval': 'Needs approval',
   'agent.waitingForInput': 'Waiting for input',
