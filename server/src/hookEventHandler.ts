@@ -1,6 +1,7 @@
 import * as path from 'path';
 
 import type { AgentEvent, HookProvider } from '../../core/src/provider.js';
+import { endReplyTurn } from './agentReply.js';
 import type { AgentStateStore } from './agentStateStore.js';
 import { SESSION_END_GRACE_MS } from './constants.js';
 import type { SessionRouter } from './sessionRouter.js';
@@ -767,6 +768,7 @@ export class HookEventHandler {
     agent.permissionSent = false;
     agent.hadToolsInTurn = false;
     agent.currentHookToolId = undefined;
+    endReplyTurn(agentId, agent, this.agents);
     this.agents.broadcast({
       type: 'agentStatus',
       id: agentId,

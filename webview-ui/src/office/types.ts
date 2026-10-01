@@ -211,6 +211,14 @@ export interface Character {
   bubbleTimer: number;
   /** Timer to stay seated while inactive after seat reassignment (counts down to 0) */
   seatTimer: number;
+  /** Set by a chat move command: stand where it was sent instead of wandering,
+   *  until the agent becomes active or is sent back to its seat. */
+  holdPosition?: boolean;
+  /** Last assistant text of the agent's finished turn, shown as a DOM speech
+   *  bubble (ReplyBubbles); null/undefined when none is showing. */
+  replyText?: string | null;
+  /** Seconds left before the reply bubble hides. */
+  replyTimer?: number;
   /** Whether this character represents a sub-agent (spawned by Task tool) */
   isSubagent: boolean;
   /** Parent agent ID if this is a sub-agent, null otherwise */

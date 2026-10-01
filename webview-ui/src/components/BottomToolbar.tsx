@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { WorkspaceFolder } from '../hooks/useExtensionMessages.js';
+import { t, useLanguage } from '../i18n/index.js';
 import { isBrowserRuntime } from '../runtime.js';
 import { transport } from '../transport/index.js';
 import { Button } from './ui/Button.js';
@@ -13,6 +14,10 @@ interface BottomToolbarProps {
   isSettingsOpen: boolean;
   onToggleSettings: () => void;
   workspaceFolders: WorkspaceFolder[];
+  /** Standalone: server has a working PTY, so agents can be launched here. */
+  terminalAvailable: boolean;
+  /** Why the terminal is off (shown on the disabled button's tooltip). */
+  terminalUnavailableReason: string | null;
 }
 
 export function BottomToolbar({
@@ -22,7 +27,10 @@ export function BottomToolbar({
   isSettingsOpen,
   onToggleSettings,
   workspaceFolders,
+  terminalAvailable,
+  terminalUnavailableReason,
 }: BottomToolbarProps) {
+  useLanguage();
   const [isFolderPickerOpen, setIsFolderPickerOpen] = useState(false);
   const [isBypassMenuOpen, setIsBypassMenuOpen] = useState(false);
   const folderPickerRef = useRef<HTMLDivElement>(null);
@@ -81,10 +89,27 @@ export function BottomToolbar({
     }
   };
 
+  // Standalone can launch agents whenever the server has a working PTY. When it
+  // doesn't, show the button disabled with the reason rather than hiding it —
+  // silently missing UI reads as a bug, and the cause (a native module that
+  // couldn't install) is not something a user would otherwise ever discover.
+  const canLaunch = !isBrowserRuntime || terminalAvailable;
+  const showUnavailable = isBrowserRuntime && !terminalAvailable;
+
   return (
-    <div className="absolute bottom-10 left-10 z-20 flex items-center gap-4 pixel-panel p-4">
-      {/* Hide + Agent in standalone browser mode (no terminal to interact with) */}
-      {!isBrowserRuntime && (
+    // Bottom-left. The terminal panel docks on the right edge, so it never
+    // reaches these buttons and no lift is needed.
+    <div className="absolute left-10 bottom-10 z-20 flex items-center gap-4 pixel-panel p-4">
+      {showUnavailable && (
+        <Button
+          variant="disabled"
+          disabled
+          title={terminalUnavailableReason ?? t('terminal.unavailable')}
+        >
+          {t('toolbar.addAgent')}
+        </Button>
+      )}
+      {canLaunch && (
         <div
           ref={folderPickerRef}
           className="relative"
@@ -100,11 +125,11 @@ export function BottomToolbar({
                 : 'bg-accent hover:bg-accent-bright'
             }
           >
-            + Agent
+            {t('toolbar.addAgent')}
           </Button>
           <Dropdown isOpen={isBypassMenuOpen}>
             <DropdownItem onClick={() => handleBypassSelect(true)}>
-              Skip permissions mode <span className="text-2xs text-warning">⚠</span>
+              {t('toolbar.skipPermissions')} <span className="text-2xs text-warning">⚠</span>
             </DropdownItem>
           </Dropdown>
           <Dropdown isOpen={isFolderPickerOpen} className="min-w-128">
@@ -123,16 +148,16 @@ export function BottomToolbar({
       <Button
         variant={isEditMode ? 'active' : 'default'}
         onClick={onToggleEditMode}
-        title="Edit office layout"
+        title={t('toolbar.layoutTitle')}
       >
-        Layout
+        {t('toolbar.layout')}
       </Button>
       <Button
         variant={isSettingsOpen ? 'active' : 'default'}
         onClick={onToggleSettings}
-        title="Settings"
+        title={t('toolbar.settings')}
       >
-        Settings
+        {t('toolbar.settings')}
       </Button>
     </div>
   );

@@ -25,6 +25,7 @@ export type ServerMessage =
   | SubagentToolPermission
   | AgentTeamInfo
   | AgentContextUsage
+  | AgentReply
   | LayoutLoaded
   | FurnitureAssetsLoaded
   | CharacterSpritesLoaded
@@ -38,6 +39,9 @@ export type ServerMessage =
   | ExternalAssetDirectoriesUpdated
   | AreaMappingsLoaded
   | WorkspaceFolders
+  | TerminalAvailability
+  | TerminalSessionOpened
+  | TerminalSessionClosed
   | AgentDiagnostics;
 
 export type ClientMessage =
@@ -45,6 +49,7 @@ export type ClientMessage =
   | LaunchAgent
   | FocusAgent
   | CloseAgent
+  | SendAgentInput
   | SaveAgentSeats
   | SaveLayout
   | SetSoundEnabled
@@ -188,6 +193,12 @@ export interface AgentContextUsage {
   maxContextTokens: number;
 }
 
+export interface AgentReply {
+  type: 'agentReply';
+  id: number;
+  text: string;
+}
+
 export interface LayoutLoaded {
   type: 'layoutLoaded';
   layout: Record<string, any> | null;
@@ -310,6 +321,23 @@ export interface WorkspaceFolder {
   path: string;
 }
 
+export interface TerminalAvailability {
+  type: 'terminalAvailability';
+  available: boolean;
+  reason?: string;
+}
+
+export interface TerminalSessionOpened {
+  type: 'terminalSessionOpened';
+  agentId: number;
+}
+
+export interface TerminalSessionClosed {
+  type: 'terminalSessionClosed';
+  agentId: number;
+  exitCode?: number;
+}
+
 export interface AgentDiagnostics {
   type: 'agentDiagnostics';
   agents: Record<string, any>[];
@@ -333,6 +361,12 @@ export interface FocusAgent {
 export interface CloseAgent {
   type: 'closeAgent';
   id: number;
+}
+
+export interface SendAgentInput {
+  type: 'sendAgentInput';
+  id: number;
+  text: string;
 }
 
 export interface SaveAgentSeats {

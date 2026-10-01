@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 
+import type { Language } from '../i18n/index.js';
+import { LANGUAGE_NAMES, setLanguage, t, useLanguage } from '../i18n/index.js';
 import { isSoundEnabled, setSoundEnabled } from '../notificationSound.js';
 import { isBrowserRuntime } from '../runtime.js';
 import { transport } from '../transport/index.js';
@@ -61,9 +63,10 @@ export function SettingsModal({
   const [soundLocal, setSoundLocal] = useState(isSoundEnabled);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [assetDirDraft, setAssetDirDraft] = useState('');
+  const language = useLanguage();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Settings">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('settings.title')}>
       {/* Open Sessions Folder opens an OS file manager — impossible in the browser. */}
       {!isBrowserRuntime && (
         <MenuItem
@@ -72,7 +75,7 @@ export function SettingsModal({
             onClose();
           }}
         >
-          Open Sessions Folder
+          {t('settings.openSessionsFolder')}
         </MenuItem>
       )}
       <MenuItem
@@ -85,7 +88,7 @@ export function SettingsModal({
           onClose();
         }}
       >
-        Export Layout
+        {t('settings.exportLayout')}
       </MenuItem>
       <MenuItem
         onClick={() => {
@@ -98,7 +101,7 @@ export function SettingsModal({
           }
         }}
       >
-        Import Layout
+        {t('settings.importLayout')}
       </MenuItem>
       {isBrowserRuntime && (
         <input
@@ -123,7 +126,7 @@ export function SettingsModal({
           <input
             type="text"
             value={assetDirDraft}
-            placeholder="Absolute asset directory path"
+            placeholder={t('settings.assetDirPlaceholder')}
             onChange={(e) => setAssetDirDraft(e.target.value)}
             className="flex-1 min-w-0 text-xs py-2 px-4 bg-bg border-2 border-border rounded-none text-text"
           />
@@ -138,7 +141,7 @@ export function SettingsModal({
             }}
             className="shrink-0"
           >
-            Add
+            {t('settings.add')}
           </Button>
         </div>
       ) : (
@@ -148,7 +151,7 @@ export function SettingsModal({
             onClose();
           }}
         >
-          Add Asset Directory
+          {t('settings.addAssetDirectory')}
         </MenuItem>
       )}
       {externalAssetDirectories.map((dir) => (
@@ -170,7 +173,7 @@ export function SettingsModal({
         </div>
       ))}
       <Checkbox
-        label="Sound Notifications"
+        label={t('settings.soundNotifications')}
         checked={soundLocal}
         onChange={() => {
           const newVal = !isSoundEnabled();
@@ -180,17 +183,17 @@ export function SettingsModal({
         }}
       />
       <Checkbox
-        label="Watch All Sessions"
+        label={t('settings.watchAllSessions')}
         checked={watchAllSessions}
         onChange={onToggleWatchAllSessions}
       />
       <Checkbox
-        label="Instant Detection (Hooks)"
+        label={t('settings.instantDetection')}
         checked={hooksInstalled}
         onChange={onToggleHooksEnabled}
       />
       <Checkbox
-        label="Always Show Labels"
+        label={t('settings.alwaysShowLabels')}
         checked={alwaysShowOverlay}
         onChange={onToggleAlwaysShowOverlay}
       />
@@ -198,15 +201,38 @@ export function SettingsModal({
           Standalone has no terminals at all, so nothing there would ever ghost. */}
       {!isBrowserRuntime && (
         <Checkbox
-          label="Display Headless as Ghosts"
+          label={t('settings.ghostHeadless')}
           checked={ghostHeadlessAgents}
           onChange={onToggleGhostHeadlessAgents}
         />
       )}
       {showAreasAvailable && (
-        <Checkbox label="Show Areas" checked={showAreas} onChange={onToggleShowAreas} />
+        <Checkbox
+          label={t('settings.showAreas')}
+          checked={showAreas}
+          onChange={onToggleShowAreas}
+        />
       )}
-      <Checkbox label="Debug View" checked={isDebugMode} onChange={onToggleDebugMode} />
+      <Checkbox
+        label={t('settings.debugView')}
+        checked={isDebugMode}
+        onChange={onToggleDebugMode}
+      />
+      <div className="flex items-center justify-between w-full py-6 px-10 gap-8">
+        <span>{t('settings.language')}</span>
+        <span className="flex gap-4">
+          {(Object.keys(LANGUAGE_NAMES) as Language[]).map((lang) => (
+            <Button
+              key={lang}
+              variant={language === lang ? 'active' : 'default'}
+              size="sm"
+              onClick={() => setLanguage(lang)}
+            >
+              {LANGUAGE_NAMES[lang]}
+            </Button>
+          ))}
+        </span>
+      </div>
     </Modal>
   );
 }

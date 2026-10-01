@@ -1,3 +1,4 @@
+import { endReplyTurn } from './agentReply.js';
 import type { AgentStateStore } from './agentStateStore.js';
 import { PERMISSION_TIMER_DELAY_MS } from './constants.js';
 import { hasPromotedBackgroundAgent } from './teamUtils.js';
@@ -81,6 +82,7 @@ export function startWaitingTimer(
     const agent = agents.get(agentId);
     if (agent) {
       agent.isWaiting = true;
+      endReplyTurn(agentId, agent, agents);
     }
     agents.broadcast({
       type: 'agentStatus',

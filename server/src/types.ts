@@ -58,6 +58,12 @@ export interface AgentState {
    *  sidechain records belong to sub-agents and stop moving the gauge. */
   sawMainChainUsage?: boolean;
 
+  // -- Turn reply bubble (server/src/agentReply.ts) --
+  /** Latest main-chain assistant text of the current turn, not yet broadcast. */
+  pendingReplyText?: string;
+  /** True once the current turn ended; text read after that is sent at once. */
+  replyTurnEnded?: boolean;
+
   // -- Agent Teams --
   teamName?: string;
   agentName?: string;

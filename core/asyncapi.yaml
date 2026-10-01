@@ -100,6 +100,8 @@ components:
         - $ref: '#/components/schemas/AgentTeamInfo'
         # Context window
         - $ref: '#/components/schemas/AgentContextUsage'
+        # Turn reply text (speech bubble)
+        - $ref: '#/components/schemas/AgentReply'
         # Layout
         - $ref: '#/components/schemas/LayoutLoaded'
         # Assets
@@ -116,6 +118,10 @@ components:
         - $ref: '#/components/schemas/ExternalAssetDirectoriesUpdated'
         - $ref: '#/components/schemas/AreaMappingsLoaded'
         - $ref: '#/components/schemas/WorkspaceFolders'
+        # Terminal (standalone embedded terminal control plane)
+        - $ref: '#/components/schemas/TerminalAvailability'
+        - $ref: '#/components/schemas/TerminalSessionOpened'
+        - $ref: '#/components/schemas/TerminalSessionClosed'
         # Diagnostics
         - $ref: '#/components/schemas/AgentDiagnostics'
       discriminator: type
@@ -126,6 +132,7 @@ components:
         - $ref: '#/components/schemas/LaunchAgent'
         - $ref: '#/components/schemas/FocusAgent'
         - $ref: '#/components/schemas/CloseAgent'
+        - $ref: '#/components/schemas/SendAgentInput'
         - $ref: '#/components/schemas/SaveAgentSeats'
         - $ref: '#/components/schemas/SaveLayout'
         - $ref: '#/components/schemas/SetSoundEnabled'
@@ -261,6 +268,22 @@ components:
             Only meaningful when status is "waiting". True when the agent went
             idle waiting on the user (drives the "Waiting for input" label);
             absent/false means the agent finished its turn ("Done").
+
+    AgentReply:
+      description: >-
+        The last assistant text of a turn that just ended, for a speech bubble
+        above the agent's character. Sent once per finished turn that produced
+        text; capped server-side, so it may already be truncated.
+      type: object
+      additionalProperties: false
+      required: [type, id, text]
+      properties:
+        type:
+          const: agentReply
+        id:
+          type: integer
+        text:
+          type: string
 
     AgentActivityStatus:
       description: Activity state of an agent.
@@ -786,6 +809,58 @@ components:
           items:
             type: object
 
+    # ── Terminal control plane (standalone embedded terminal) ──────
+    # Only the CONTROL plane lives in this contract. The terminal's raw byte
+    # stream is deliberately outside it, on a dedicated WebSocket endpoint
+    # (GET /terminal/:agentId): it is unstructured, high-frequency data that
+    # would otherwise pass through this discriminated union and the store's
+    # broadcast fan-out (which would also leak one agent's output to every
+    # connected client). See docs/design/standalone-terminal.md.
+
+    TerminalAvailability:
+      description: >-
+        Whether this server can host embedded terminals. Standalone only; the
+        VS Code surface owns its own terminals and never receives this. When
+        false, the client hides terminal UI and shows `reason`.
+      type: object
+      additionalProperties: false
+      required: [type, available]
+      properties:
+        type:
+          const: terminalAvailability
+        available:
+          type: boolean
+        reason:
+          type: string
+          description: Human-readable cause when unavailable (e.g. no PTY module installed).
+
+    TerminalSessionOpened:
+      description: >-
+        A PTY-backed terminal now exists for this agent; the client may attach to
+        GET /terminal/:agentId. Re-sent on webviewReady for every live session so
+        a reconnecting client rebuilds its tabs.
+      type: object
+      additionalProperties: false
+      required: [type, agentId]
+      properties:
+        type:
+          const: terminalSessionOpened
+        agentId:
+          type: integer
+
+    TerminalSessionClosed:
+      description: The agent's terminal process exited; its socket is no longer attachable.
+      type: object
+      additionalProperties: false
+      required: [type, agentId]
+      properties:
+        type:
+          const: terminalSessionClosed
+        agentId:
+          type: integer
+        exitCode:
+          type: integer
+
     # ── Client message variants ────────────────────────────────────
 
     WebviewReady:
@@ -832,6 +907,23 @@ components:
           const: closeAgent
         id:
           type: integer
+
+    SendAgentInput:
+      description: >-
+        Type a chat message into a PTY-backed agent's terminal and submit it
+        (standalone only). Honoured only on a privileged (tokened) connection and
+        only for agents this server launched in a PTY; newlines are flattened to
+        spaces and the length is capped server-side.
+      type: object
+      additionalProperties: false
+      required: [type, id, text]
+      properties:
+        type:
+          const: sendAgentInput
+        id:
+          type: integer
+        text:
+          type: string
 
     SaveAgentSeats:
       description: Persist seat assignments for current agents.

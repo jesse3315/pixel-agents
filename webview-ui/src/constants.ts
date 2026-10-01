@@ -206,6 +206,23 @@ export const CHARACTER_HIT_HALF_WIDTH = 8;
 export const CHARACTER_HIT_HEIGHT = 24;
 export const TOOL_OVERLAY_VERTICAL_OFFSET = 32;
 
+// ── Agent chat (reply bubble + chat input) ──────────────────
+/** Seconds a turn-reply speech bubble stays up (it also hides on new activity). */
+export const AGENT_REPLY_BUBBLE_DURATION_SEC = 12;
+/** Characters of reply text shown in the bubble before the ellipsis. */
+export const AGENT_REPLY_BUBBLE_MAX_CHARS = 140;
+/** Screen px between the character's overlay anchor and the bubble's bottom
+ *  edge, so the bubble clears the hover/selected label panel. */
+export const AGENT_REPLY_BUBBLE_LIFT_PX = 34;
+/** Bubble width cap; long replies wrap inside it. */
+export const AGENT_REPLY_BUBBLE_MAX_WIDTH_PX = 280;
+/** Chat input width (clamped to the office region on narrow screens). */
+export const AGENT_CHAT_WIDTH_PX = 520;
+/** Longest chat message the input accepts (the server refuses longer ones). */
+export const AGENT_CHAT_MAX_CHARS = 4000;
+/** How long a chat hint ("no such area", "sent") stays under the input. */
+export const AGENT_CHAT_HINT_MS = 4000;
+
 // ── Greeter + Intro bubble ──────────────────────────────────
 /** Reserved character id for the Intro's greeter. Far outside both real agent
  *  ids (positive) and sub-agent ids (small negatives from -1 down). */
@@ -312,3 +329,83 @@ export const PET_THUMB_SCALE_MARGIN = 0.85;
 export const EMPTY_SPRITE_THUMBNAIL_BG = '#333';
 /** Maximum string length for a PlacedPet.id (defends against pathologically-long layout entries). */
 export const MAX_PET_ID_LENGTH = 128;
+
+// ── i18n ────────────────────────────────────────────────────
+/** localStorage key holding the user's chosen UI language ('en' | 'ko'). */
+export const LANGUAGE_STORAGE_KEY = 'pixel-agents.language';
+
+// ── WebSocket reconnect (standalone only) ────────────────────
+/** Reconnect backoff ladder shared by the /ws transport and every terminal
+ *  socket (transport/reconnectBackoff.ts). The last rung repeats. */
+export const WS_RECONNECT_DELAYS_MS = [250, 500, 1_000, 2_000, 4_000] as const;
+
+// ── Terminal drawer (standalone only) ────────────────────────
+
+// This file is the one place inline colors are allowed (see eslint.config.js),
+// which is why xterm's theme lives here rather than next to the component.
+
+// The panel docks on the right as a full-height column, in flow beside the
+// office region (which flexes to fill the rest) — not overlaid on top of it.
+/** Open width the panel starts at, in px; the user can drag to resize. */
+export const TERMINAL_DRAWER_DEFAULT_WIDTH_PX = 520;
+/** Clamp for the drag: never narrower than this. */
+export const TERMINAL_DRAWER_MIN_WIDTH_PX = 320;
+/** Clamp for the drag: never wider than this fraction of the window. */
+export const TERMINAL_DRAWER_MAX_WIDTH_RATIO = 0.8;
+/** Width of the always-visible agent-card bar overlaying the office's right
+ *  edge — fits the toggle handle and the stacked agent cards (40px mug shot +
+ *  16px close/status column + card chrome ≈ 63px, plus a little air each
+ *  side). */
+export const TERMINAL_SIDEBAR_WIDTH_PX = 72;
+/** Grab width of the drag handle on the panel's left edge. */
+export const TERMINAL_DRAWER_RESIZE_HANDLE_PX = 6;
+
+// Mug shot: a square crop of the agent's front-facing sprite, focused on the
+// face, shown in each terminal tab in place of an "Agent N" label. Sprites are
+// 16 wide × 32 tall; the head runs to about row 18 (eyes ~row 14). The square is
+// wider than the 16px sprite, so the head sits centred with a little air.
+// Tweak these three to reframe: SIDE = zoom out/in, TOP = raise/lower the crop,
+// LEFT = shift left/right (negative centres a square wider than the sprite).
+export const MUGSHOT_CROP_TOP_ROW = 0;
+export const MUGSHOT_CROP_LEFT_COL = -1;
+export const MUGSHOT_CROP_SIDE_PX = 20;
+/** Integer sprite-pixel zoom. 2 = each sprite pixel is 2 px. */
+export const MUGSHOT_RENDER_ZOOM = 2;
+/** On-screen size in CSS px. Equal to the backing canvas (crop × zoom) so there
+ *  is no fractional scaling — the mug shot stays pixel-perfect. */
+export const MUGSHOT_DISPLAY_PX = MUGSHOT_CROP_SIDE_PX * MUGSHOT_RENDER_ZOOM;
+/** Terminal CONTENT is monospace on purpose: FS Pixel Sans is not a mono font,
+ *  and a TUI mis-renders in a proportional face. The drawer chrome around it
+ *  still uses the pixel font. */
+export const TERMINAL_FONT_FAMILY =
+  'ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace';
+export const TERMINAL_FONT_SIZE_PX = 13;
+/** Lines xterm retains client-side (independent of the server's replay ring). */
+export const TERMINAL_SCROLLBACK_LINES = 5_000;
+/** Debounce for propagating a resize to the PTY (fit on every frame thrashes it). */
+export const TERMINAL_RESIZE_DEBOUNCE_MS = 100;
+
+/** xterm theme, matched to the office palette (index.css :root). */
+export const TERMINAL_THEME = {
+  background: '#181828',
+  foreground: 'rgba(255, 255, 255, 0.9)',
+  cursor: '#6030ff',
+  cursorAccent: '#181828',
+  selectionBackground: 'rgba(96, 48, 255, 0.4)',
+  black: '#1e1e2e',
+  red: '#d14249',
+  green: '#89d185',
+  yellow: '#cca700',
+  blue: '#3794ff',
+  magenta: '#746fff',
+  cyan: '#4ad9d9',
+  white: 'rgba(255, 255, 255, 0.9)',
+  brightBlack: '#4a4a6a',
+  brightRed: '#ff6b72',
+  brightGreen: '#a8e5a4',
+  brightYellow: '#ffd700',
+  brightBlue: '#66aaff',
+  brightMagenta: '#a29bff',
+  brightCyan: '#7fe8e8',
+  brightWhite: '#ffffff',
+} as const;

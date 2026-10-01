@@ -1,5 +1,6 @@
 import { pickDiversePalette } from '../../../../core/src/paletteUtils.js';
 import {
+  AGENT_REPLY_BUBBLE_DURATION_SEC,
   AUTO_ON_FACING_DEPTH,
   AUTO_ON_SIDE_DEPTH,
   CHARACTER_HIT_HALF_WIDTH,
@@ -642,6 +643,7 @@ export class OfficeState {
   sendToSeat(agentId: number): void {
     const ch = this.characters.get(agentId);
     if (!ch || !ch.seatId) return;
+    ch.holdPosition = false;
     const seat = this.seats.get(ch.seatId);
     if (!seat) return;
     const path = this.withOwnSeatUnblocked(ch, () =>
@@ -684,6 +686,43 @@ export class OfficeState {
     ch.frame = 0;
     ch.frameTimer = 0;
     return true;
+  }
+
+  /**
+   * Walk an agent into a named area (chat move command) and keep it there:
+   * holdPosition stops idle wandering until the agent becomes active or is sent
+   * back to its seat. Targets the nearest free walkable tile of the area that
+   * has a path. Returns false when the area has no reachable tile.
+   */
+  walkToArea(agentId: number, label: string): boolean {
+    const ch = this.characters.get(agentId);
+    const areaTiles = this.layout.areaTiles;
+    if (!ch || ch.isSubagent || !areaTiles) return false;
+    const inArea = (t: { col: number; row: number }) =>
+      areaTiles[t.row * this.layout.cols + t.col] === label;
+    if (inArea({ col: ch.tileCol, row: ch.tileRow }) && ch.path.length === 0) {
+      ch.holdPosition = true;
+      return true;
+    }
+    const occupied = new Set<string>();
+    for (const other of this.characters.values()) {
+      if (other.id !== agentId) occupied.add(`${other.tileCol},${other.tileRow}`);
+    }
+    const candidates = this.walkableTiles
+      .filter((t) => inArea(t) && !occupied.has(`${t.col},${t.row}`))
+      .sort(
+        (a, b) =>
+          Math.abs(a.col - ch.tileCol) +
+          Math.abs(a.row - ch.tileRow) -
+          (Math.abs(b.col - ch.tileCol) + Math.abs(b.row - ch.tileRow)),
+      );
+    for (const tile of candidates) {
+      if (this.walkToTile(agentId, tile.col, tile.row)) {
+        ch.holdPosition = true;
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Create a sub-agent character with the parent's palette. Returns the sub-agent ID. */
@@ -792,7 +831,11 @@ export class OfficeState {
     const ch = this.characters.get(id);
     if (ch) {
       ch.isActive = active;
-      if (!active) {
+      if (active) {
+        // New activity: walk back to work, and the last reply is stale.
+        ch.holdPosition = false;
+        ch.replyText = null;
+      } else {
         // Sentinel -1: signals turn just ended, skip next seat rest timer.
         // Prevents the WALK handler from setting a 2-4 min rest on arrival.
         ch.seatTimer = -1;
@@ -901,6 +944,20 @@ export class OfficeState {
       ch.waitingAwaitingInput = awaitingInput;
       ch.bubbleTimer = WAITING_BUBBLE_DURATION_SEC;
     }
+  }
+
+  /** Show the agent's turn reply as a speech bubble (ReplyBubbles renders it). */
+  showReply(id: number, text: string): void {
+    const ch = this.characters.get(id);
+    if (ch) {
+      ch.replyText = text;
+      ch.replyTimer = AGENT_REPLY_BUBBLE_DURATION_SEC;
+    }
+  }
+
+  dismissReply(id: number): void {
+    const ch = this.characters.get(id);
+    if (ch) ch.replyText = null;
   }
 
   /** Dismiss bubble on click — permission: instant, waiting: quick fade */
@@ -1113,6 +1170,11 @@ export class OfficeState {
       this.withOwnSeatUnblocked(ch, () =>
         updateCharacter(ch, dt, this.walkableTiles, this.seats, this.tileMap, this.blockedTiles),
       );
+
+      if (ch.replyText) {
+        ch.replyTimer = (ch.replyTimer ?? 0) - dt;
+        if (ch.replyTimer <= 0) ch.replyText = null;
+      }
 
       // Tick bubble timer for waiting bubbles
       if (ch.bubbleType === 'waiting') {

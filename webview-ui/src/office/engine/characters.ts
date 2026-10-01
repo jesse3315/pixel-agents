@@ -161,6 +161,8 @@ export function updateCharacter(
         }
         break;
       }
+      // Sent somewhere by a chat command: stay put until active again.
+      if (ch.holdPosition) break;
       // Countdown wander timer
       ch.wanderTimer -= dt;
       if (ch.wanderTimer <= 0) {

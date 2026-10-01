@@ -1,6 +1,12 @@
 const debug = process.env.PIXEL_AGENTS_DEBUG !== '0';
 
 import type { HookProvider } from '../../core/src/provider.js';
+import {
+  endReplyTurn,
+  extractAssistantText,
+  noteAssistantText,
+  startReplyTurn,
+} from './agentReply.js';
 import type { AgentStateStore } from './agentStateStore.js';
 import { TEXT_IDLE_DELAY_MS, TOOL_DONE_DELAY_MS } from './constants.js';
 import { updateContextUsage } from './contextUsage.js';
@@ -138,6 +144,22 @@ export function processTranscriptLine(
     // Resilient content extraction: support both record.message.content and record.content
     // Claude Code may change the JSONL structure across versions
     const assistantContent = record.message?.content ?? record.content;
+    // A lead's sidechain records are its sub-agents' turns (same latch as the
+    // context gauge): they must not become the lead's reply bubble.
+    const isOwnTurn = !(record.isSidechain === true && agent.sawMainChainUsage);
+
+    if (record.type === 'assistant' && isOwnTurn) {
+      const hasToolUse =
+        Array.isArray(assistantContent) &&
+        assistantContent.some((b: { type?: string }) => b?.type === 'tool_use');
+      const replyText = hasToolUse ? null : extractAssistantText(assistantContent);
+      if (hasToolUse) {
+        // Text before a tool call is a preamble ("Let me check..."), not the reply.
+        agent.pendingReplyText = undefined;
+      } else if (replyText) {
+        noteAssistantText(agentId, agent, agents, replyText);
+      }
+    }
 
     if (record.type === 'assistant' && Array.isArray(assistantContent)) {
       const blocks = assistantContent as Array<{
@@ -400,12 +422,14 @@ export function processTranscriptLine(
           cancelWaitingTimer(agentId, waitingTimers);
           clearAgentActivity(agent, agentId, agents, permissionTimers);
           agent.hadToolsInTurn = false;
+          if (isOwnTurn) startReplyTurn(agent);
         }
       } else if (typeof content === 'string' && content.trim()) {
         // New user text prompt — new turn starting
         cancelWaitingTimer(agentId, waitingTimers);
         clearAgentActivity(agent, agentId, agents, permissionTimers);
         agent.hadToolsInTurn = false;
+        if (isOwnTurn) startReplyTurn(agent);
       }
     } else if (record.type === 'queue-operation' && record.operation === 'enqueue') {
       // Background agent completed — parse tool-use-id from XML content
@@ -505,6 +529,7 @@ export function processTranscriptLine(
       agent.isWaiting = true;
       agent.permissionSent = false;
       agent.hadToolsInTurn = false;
+      endReplyTurn(agentId, agent, agents);
       // Skip status post when hooks already handled it
       if (!agent.hookDelivered) {
         agents.broadcast({
