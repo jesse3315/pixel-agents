@@ -22,6 +22,15 @@ describe('parseMoveCommand: Korean area commands', () => {
     assert.deepEqual(parseMoveCommand('  휴게실로와  ', AREAS), area('휴게실', '휴게실'));
   });
 
+  test('accepts 모이다 (gather) forms', () => {
+    assert.deepEqual(parseMoveCommand('회의실로 모이세요', AREAS), area('회의실', '회의실'));
+    assert.deepEqual(parseMoveCommand('회의실로 모여', AREAS), area('회의실', '회의실'));
+    assert.deepEqual(parseMoveCommand('회의실로 모여줘', AREAS), area('회의실', '회의실'));
+    assert.deepEqual(parseMoveCommand('회의실에 모이자', AREAS), area('회의실', '회의실'));
+    assert.deepEqual(parseMoveCommand('회의실로 모입시다', AREAS), area('회의실', '회의실'));
+    assert.deepEqual(parseMoveCommand('회의실로 오세요', AREAS), area('회의실', '회의실'));
+  });
+
   test('matches a label that itself ends in a particle-like syllable', () => {
     assert.deepEqual(parseMoveCommand('복도로로 와', AREAS), area('복도로', '복도로'));
   });
