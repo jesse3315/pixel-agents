@@ -38,6 +38,10 @@ export default defineConfig({
   // uses Playwright's standard browser `page` fixture.
   use: {
     video: 'on',
+    // The webview picks its UI language from navigator.language; pin English so
+    // the standalone suite's text assertions hold on non-English machines
+    // (VS Code tests pin it via --locale=en in e2e/helpers/launch.ts).
+    locale: 'en-US',
   },
   // Default to one worker locally; CI can override this with --workers.
   workers: 1,

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { WorkspaceFolder } from '../hooks/useExtensionMessages.js';
+import { t, useLanguage } from '../i18n/index.js';
 import { isBrowserRuntime } from '../runtime.js';
 import { transport } from '../transport/index.js';
 import { Button } from './ui/Button.js';
@@ -23,6 +24,7 @@ export function BottomToolbar({
   onToggleSettings,
   workspaceFolders,
 }: BottomToolbarProps) {
+  useLanguage();
   const [isFolderPickerOpen, setIsFolderPickerOpen] = useState(false);
   const [isBypassMenuOpen, setIsBypassMenuOpen] = useState(false);
   const folderPickerRef = useRef<HTMLDivElement>(null);
@@ -100,11 +102,11 @@ export function BottomToolbar({
                 : 'bg-accent hover:bg-accent-bright'
             }
           >
-            + Agent
+            {t('toolbar.addAgent')}
           </Button>
           <Dropdown isOpen={isBypassMenuOpen}>
             <DropdownItem onClick={() => handleBypassSelect(true)}>
-              Skip permissions mode <span className="text-2xs text-warning">⚠</span>
+              {t('toolbar.skipPermissions')} <span className="text-2xs text-warning">⚠</span>
             </DropdownItem>
           </Dropdown>
           <Dropdown isOpen={isFolderPickerOpen} className="min-w-128">
@@ -123,16 +125,16 @@ export function BottomToolbar({
       <Button
         variant={isEditMode ? 'active' : 'default'}
         onClick={onToggleEditMode}
-        title="Edit office layout"
+        title={t('toolbar.layoutTitle')}
       >
-        Layout
+        {t('toolbar.layout')}
       </Button>
       <Button
         variant={isSettingsOpen ? 'active' : 'default'}
         onClick={onToggleSettings}
-        title="Settings"
+        title={t('toolbar.settings')}
       >
-        Settings
+        {t('toolbar.settings')}
       </Button>
     </div>
   );

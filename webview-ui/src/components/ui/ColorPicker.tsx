@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 
+import { t, useLanguage } from '../../i18n/index.js';
 import { VisualColorPicker } from '../VisualColorPicker.js';
 import { Button } from './Button.js';
 import type { ColorValue } from './types.js';
@@ -53,6 +54,7 @@ export function ColorPicker({
   showColorizeToggle,
   onReset,
 }: ColorPickerProps) {
+  useLanguage();
   const handleChange = (key: keyof ColorValue, v: number) => {
     onChange({ ...value, [key]: v });
   };
@@ -62,28 +64,28 @@ export function ColorPicker({
   return (
     <div className="flex flex-col py-8 px-10 bg-bg-dark border-2 border-border rounded-none">
       <ColorSlider
-        label="Hue"
+        label={t('color.hue')}
         value={value.h}
         min={isColorize ? 0 : -180}
         max={isColorize ? 360 : 180}
         onChange={(v) => handleChange('h', v)}
       />
       <ColorSlider
-        label="Saturation"
+        label={t('color.saturation')}
         value={value.s}
         min={isColorize ? 0 : -100}
         max={100}
         onChange={(v) => handleChange('s', v)}
       />
       <ColorSlider
-        label="Brightness"
+        label={t('color.brightness')}
         value={value.b}
         min={-100}
         max={100}
         onChange={(v) => handleChange('b', v)}
       />
       <ColorSlider
-        label="Contrast"
+        label={t('color.contrast')}
         value={value.c}
         min={-100}
         max={100}
@@ -99,9 +101,9 @@ export function ColorPicker({
               type="button"
               onClick={() => onChange({ ...value, colorize: !value.colorize || undefined })}
               className="flex items-center gap-8 shrink-0 bg-transparent border-0 p-0 cursor-pointer text-left"
-              title="Toggle colorize mode"
+              title={t('color.colorizeTitle')}
             >
-              <span className="text-sm text-text-muted w-64 shrink-0">Colorize</span>
+              <span className="text-sm text-text-muted w-64 shrink-0">{t('color.colorize')}</span>
               <span
                 className={`w-18 h-18 border-2 border-border inline-flex items-center justify-center text-2xs leading-none text-text shrink-0 ${
                   value.colorize ? 'bg-accent' : 'bg-bg'
@@ -124,10 +126,10 @@ export function ColorPicker({
               variant="default"
               size="sm"
               onClick={onReset}
-              title="Reset to default"
+              title={t('color.resetTitle')}
               className="mt-6"
             >
-              Reset
+              {t('color.reset')}
             </Button>
           )}
         </div>

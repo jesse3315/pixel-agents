@@ -373,6 +373,9 @@ export async function launchVSCode(
     // Disable GPU acceleration: prevents Electron GPU-sandbox stalls in headless
     // CI environments (required on macOS arm64 runners, harmless elsewhere).
     '--disable-gpu',
+    // Pin the display language: the webview picks its UI language from
+    // navigator.language, and e2e text assertions expect English.
+    '--locale=en',
     // On Linux, use the Ozone headless platform so Electron runs without a
     // display server (equivalent to what --disable-gpu achieves on macOS/Windows).
     ...(process.platform === 'linux' ? ['--ozone-platform=headless'] : []),
